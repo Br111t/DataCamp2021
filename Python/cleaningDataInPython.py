@@ -22,10 +22,11 @@ Unifying date formats
 Summing accross rows 
 Building aseerts functions 
 Finding missind data trating them
-Chapter 4
+Chapter 5
 Link datasets where joins don't owrk
 By learning about record linkage 
 '''
+
 
 ## Numeric data or... ?
 # Print the information of ride_sharing

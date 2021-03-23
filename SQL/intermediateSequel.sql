@@ -1345,7 +1345,7 @@ GROUP BY couontry_id
 Produces error >> column "match.season" must appear in the GROUP BY clause or be used in an aggregate function
 
 This error can be avoided by using window functions 
-Window functions - perfomr caluclation on an already generated result set (a window)
+Window functions - perform caluclation on an already generated result set (a window)
 *Running totals, rankings, moving averages
 
 Query from Chapter to 

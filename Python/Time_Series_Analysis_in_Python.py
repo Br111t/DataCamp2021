@@ -945,3 +945,362 @@ To simulate data, use the method generate_sample, with the number of simulated
 samples as an argument 
 '''
 
+###Simulate MA(1) Time Series 
+# import the module for simulating data
+from statsmodels.tsa.arima_process import ArmaProcess
+
+# Plot 1: MA parameter = -0.9
+plt.subplot(2,1,1)
+ar1 = np.array([1])
+ma1 = np.array([1, -0.9])
+MA_object1 = ArmaProcess(ar1, ma1)
+simulated_data_1 = MA_object1.generate_sample(nsample=1000)
+plt.plot(simulated_data_1)
+
+# Plot 2: MA parameter = +0.9
+plt.subplot(2,1,2)
+ar2 = np.array([1])
+ma2 = np.array([1, 0.9])
+MA_object2 = ArmaPro2 etc . cess(ar2, ma2)
+simulated_data_2 = MA_object2.generate_sample(nsample=1000)
+plt.plot(simulated_data_2)
+
+plt.show()
+
+###Compute the ACF for Several MA Time Series 
+
+'''
+Unlike an AR(1), an MA(1) model has no autocorrelation beyond lag 1, an MA(2) model
+has no autocorrelation begond lag 1, an MA(2) model ha no autocorrelation beyond lag
+1, an MA(2) model has no autocorrelation beyond lag 2 etc.
+'''
+
+# Import the plot_acf module from statsmodels
+from statsmodels.graphics.tsaplots import plot_acf
+
+# Plot 1: MA parameter = -0.9
+plot_acf(simulated_data_1, lags=20)
+plt.show()
+
+# Plot 2: MA parameter = 0.9
+plot_acf(simulated_data_2, lags=20)
+plt.show()
+
+# Plot 3: MA parameter = -0.3
+plot_acf(simulataed_data_3, lags=20)
+plt.show()
+
+
+'''
+Estimating and Forecasting an MA Model 
+Estimating an MA Model 
+* Same as estimating an AR model (except order=(0,1))
+    from statsmodels.tsa.arima_model import ARMA
+    mod = ARMA(simulated_data, order=(0,1))
+    result = mod.fit()
+    
+The same module that you used to estimate an AR model can be used to estimate the 
+parameters of an MA model. 
+
+Now the order is (0,1), for an MA(1), not (1,0) for an AR(1)
+
+
+Forcasting an MA Model 
+from stasmodel.tsa.arima_model import ARMA
+mod = ARMA(simullated_data, order=(0,1))
+res = mod.fit()
+res.plot_predict(start='2016-07-01', end='2017-06-01')
+plt.show()
+
+One thing to note with an MA model unlike and AR model, all forcast beyond the 
+one-step ahead forecast will be the same.
+'''
+
+###Estimating the MA model
+# Import the ARMA module from statsmodels
+from statsmodels.tsa.arima_model import ARMA
+
+# Forecast the first MA(1) model
+mod = ARMA(simulated_data_1, order=(0,1))
+res = mod.fit()
+res.plot_predict(start=990, end=1010)
+plt.show()
+
+
+'''
+ARMA models 
+Here is the formula for an ARMA(1,1) model, which has the familiar AR(1) and 
+MA(1) components
+
+R_t = mu + phi R_t-1 + epselon_t + theta_t-1
+
+ARMA models can be converted to pure AR or pure MA models
+
+*Converting AR(1) into an MA(infinity)
+
+Here is an example of converting an AR(1) model into a MA(infinity) model
+
+R_t = mu + phi R_t-1 + epselon_t # AR(1) model
+
+R_t = mu + phi(mu + phi R_t-2 + epselon_t-1) + epselon_t #AR(1) equation is substituted for R_t-1
+.
+.
+.
+R_t = (mu/1-phi) + epselon_t + phi epselon_t-1 - phi^2 epselon_t-2 + phi^3 epselon_t-3 + ...
+'''
+
+###High Frequecy Stock Prices
+# import datetime module
+import datetime
+
+# Change the first date to zero
+intraday.iloc[0,0] = 0
+
+# Change the column headers to 'DATE' and 'CLOSE'
+intraday.columns = ['DATE', 'CLOSE']
+
+# Examine the data types for each column
+print(intraday.dtypes)
+
+# Convert DATE column to numeric
+intraday['DATE'] = pd.to_numeric(intraday['DATE'])
+
+# Make the `DATE` column the new index
+intraday = intraday.set_index('DATE')
+
+
+###More Data Cleaning: Missing Data
+# Notice that some rows are missing
+print("If there were no missing rows, there would be 391 rows of minute data")
+print("The actual length of the DataFrame is:", len(intraday))
+
+# Everything
+set_everything = set(range(391))
+
+# The intraday index as a set
+set_intraday = set(intraday.index) 
+
+# Calculate the difference
+set_missing = set_everything - set_intraday
+
+# Print the difference
+print("Missing rows: ", set_missing)
+
+# Fill in the missing rows
+intraday = intraday.reindex(range(391), method='ffill')
+
+# Change the index to the intraday times
+intraday.index = pd.date_range(start='2017-09-01 9:30', end='2017-09-01 16:00', freq='1min')
+
+# Plot the intraday time series
+intraday.plot(grid=True)
+plt.show()
+
+
+###Applying an MA Model
+# Import plot_acf and ARMA modules from statsmodels
+from statsmodels.graphics.tsaplots import plot_acf
+from statsmodels.tsa.arima_model import ARMA
+
+# Compute returns from prices and drop the NaN
+returns = intraday.pct_change()
+returns = returns.dropna()
+
+# Plot ACF of returns with lags up to 60 minutes
+plot_acf(returns, lags=60)
+plt.show()
+
+# Fit the data to an MA(1) model
+mod = ARMA(returns, order=(0,1))
+res = mod.fit()
+print(res.params)
+
+###Equivalence of AR(1) and MA(infinity)
+
+# import the modules for simulating data and plotting the ACF
+from statsmodels.tsa.arima_process import ArmaProcess
+from statsmodels.graphics.tsaplots import plot_acf
+
+# Build a list MA parameters
+ma = [0.8**i for i in range(30)]
+
+# Simulate the MA(30) model
+ar = np.array([1])
+AR_object = ArmaProcess(ar, ma)
+simulated_data = AR_object.generate_sample(nsample=5000)
+
+# Plot the ACF
+plot_acf(simulated_data, lags=30)
+plt.show()
+
+'''
+Cointegration Models
+* Two series, P_t and Q_t can be random walks
+* But the linear combination P_t - c Q_t may not be a random walk!
+If thats true
+- P_t - c Q_t is forcastable
+- P_t and Q_t are said to be cointegrated 
+
+Even in the prices of two different assets still follow random walks, it is still 
+both follow random walks, it is still possible that a linear combination of them 
+is not a random walk. If that is true even though P and Q are not that forcastable 
+becasue they are random walks, the linear combination is forcastable, and we say
+that P and Q are cointegrated.
+
+Analogy: Dog on a leash 
+P_t = Owner 
+Q_t = Dog 
+
+- Both series look like a random walk
+- Difference, or distance between them, looks mean reverting
+    If dog falls too far behind, it gets pulled forward 
+    If dog gets too far ahead, it gets pulled back 
+    
+You can break down the process for testing whether two series are cointegrated into
+two steps. First, you regress the level of one series on the level of the other series, 
+to get the slope coefficient c. Then you run the Augmented Dickey-Fuller test, 
+the test for a random walk (linear combination of two series). 
+
+Alternatively, statsmodels has a function coint that combines both steps 
+
+Two steps for cointegration 
+* Regress P_t on Q_t and get slope c
+* Run augmented Dickey-Fuller test on P_t - c Q_t to test for random walk
+* Alternatively, can use coint function in statsmodels that combines both steps 
+
+from statsmodels.tsa.stattools import coint
+coint(P, Q)
+'''
+
+###A dog on a leash
+# Plot the prices separately
+plt.subplot(2,1,1)
+plt.plot(7.25*HO, label='Heating Oil')
+plt.plot(NG, label='Natural Gas')
+plt.legend(loc='best', fontsize='small')
+
+# Plot the spread
+plt.subplot(2,1,2)
+plt.plot(7.25*HO-NG, label='Spread')
+plt.legend(loc='best', fontsize='small')
+plt.axhline(y=0, linestyle='--', color='k')
+plt.show()
+
+###A dog on a leash (Part 2)
+ # Import the adfuller module from statsmodels
+from statsmodels.tsa.stattools import adfuller
+
+# Compute the ADF for HO and NG
+result_HO = adfuller(HO['Close'])
+print("The p-value for the ADF test on HO is ", result_HO[1])
+result_NG = adfuller(NG['Close'])
+print("The p-value for the ADF test on NG is ", result_NG[1])
+
+# Compute the ADF of the spread
+result_spread = adfuller(7.25 * HO['Close'] - NG['Close'])
+print("The p-value for the ADF test on the spread is ", result_spread[1])
+
+###Are bitcoint and ethereum cointegrated 
+# Import the statsmodels module for regression and the adfuller function
+import statsmodels.api as sm
+from statsmodels.tsa.stattools import adfuller
+
+# Regress BTC on ETH
+ETH = sm.add_constant(ETH)
+result = sm.OLS(BTC,ETH).fit()
+
+# Compute ADF
+b = result.params[1]
+adf_stats = adfuller(BTC['Price'] - b*ETH['Price'])
+print("The p-value for the ADF test is ", adf_stats[1])
+
+
+'''
+Analyzing Temperature Data 
+* Temperature data:
+    - New York City from 1870-2016
+    - Downloaded from National Oceanic and Atmospheric Administration (NOAA)
+    - Convert index to datetime object 
+    - Plot data
+    - Test for Random Walk 
+    - Take first differences # transforms it into stationary series 
+    - Compute Autocorrelation Function (ACF) and Partial Autocorrelation Function (PACF)
+    - Fit a few AR, MA, and ARMA models 
+    - Use Information Criterion to choose best model 
+    - Forecast temperature over next 30 years 
+'''
+
+###Is Temperature a Random Walk (with Drift)?
+# Import the adfuller function from the statsmodels module
+from statsmodels.tsa.stattools import adfuller
+
+# Convert the index to a datetime object
+temp_NY.index = pd.to_datetime(temp_NY.index, format='%Y')
+
+# Plot average temperatures
+temp_NY.plot()
+plt.show()
+
+# Compute and print ADF p-value
+result = adfuller(temp_NY['TAVG'])
+print("The p-value for the ADF test is ", result[1])
+
+
+###Getting "Warmed" Up: Look at Autocorrelations
+# Import the modules for plotting the sample ACF and PACF
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+
+# Take first difference of the temperature Series
+chg_temp = temp_NY.diff()
+chg_temp = chg_temp.dropna()
+
+# Plot the ACF and PACF on the same page
+fig, axes = plt.subplots(2,1)
+
+# Plot the ACF
+plot_acf(chg_temp, lags=20, ax=axes[0])
+
+# Plot the PACF
+plot_pacf(chg_temp, lags=20, ax=axes[1])
+plt.show()
+
+###Which ARMA Model is Best?
+# Import the module for estimating an ARMA model
+from statsmodels.tsa.arima_model import ARMA
+
+# Fit the data to an AR(1) model and print AIC:
+mod_ar1 = ARMA(chg_temp, order=(1, 0))
+res_ar1 = mod_ar1.fit()
+print("The AIC for an AR(1) is: ", res_ar1.aic)
+
+# Fit the data to an AR(2) model and print AIC:
+mod_ar2 = ARMA(chg_temp, order=(2, 0))
+res_ar2 = mod_ar2.fit()
+print("The AIC for an AR(2) is: ", res_ar2.aic)
+
+# Fit the data to an ARMA(1,1) model and print AIC:
+mod_arma11 = ARMA(chg_temp, order=(1, 1))
+res_arma11 = mod_arma11.fit()
+print("The AIC for an ARMA(1,1) is: ", res_arma11.aic)
+
+###Don't throw ou that winter coat yet 
+# Import the ARIMA module from statsmodels
+from statsmodels.tsa.arima_model import ARIMA
+
+# Forecast temperatures using an ARIMA(1,1,1) model
+mod = ARIMA(temp_NY, order=(1,1,1))
+res = mod.fit()
+
+# Plot the original series and the forecasted series
+res.plot_predict(start='1872-01-01', end='2046-01-01')
+plt.show()
+
+
+'''
+Advanced Topics 
+* GARCH Models
+* Nonlinear Models
+* Multivariate Time Series Models 
+* Regime Switching Models 
+* State Space Models and Kalman filtering 
+'''
